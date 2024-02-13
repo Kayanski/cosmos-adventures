@@ -1,5 +1,5 @@
 mod instantiate;
 
-pub use instantiate::instantiate_reply;
+pub use instantiate::account_creation_reply;
 
-pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
+pub const ACCOUNT_CREATION_REPLY: u64 = 1u64;

@@ -1,0 +1,29 @@
+[package]
+name = "ca-scripts"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[lib]
+
+[dependencies]
+anyhow = "1.0.79"
+cw-orch = "0.19.1"
+cw-orch-interchain = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
+abstract-cw-orch-polytone = "1.0.4"
+abstract-interface = "0.20.0"
+abstract-core = "0.20.0"
+abstract-sdk = "0.20.0"
+abstract-polytone = "1.0.5"
+cosmos-adventures-hub = { version = "0.0.1", path = "..", features = [
+    "interface",
+] }
+cw721 = "0.15.0"
+cw721-base = "0.15.0"
+cw721-metadata-onchain = "0.15.0"
+cosmwasm-std = "1.5.3"
+abstract-client = "0.20.0"
+cosmwasm-schema = "1.5.3"
+env_logger = "0.11.1"

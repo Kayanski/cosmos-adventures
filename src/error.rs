@@ -1,7 +1,7 @@
-use abstract_app::abstract_core::AbstractError;
-use abstract_app::abstract_sdk::AbstractSdkError;
-use abstract_app::AppError as AbstractAppError;
-use cosmwasm_std::StdError;
+use abstract_adapter::AdapterError;
+use abstract_core::{objects::version_control::VersionControlError, AbstractError};
+use abstract_sdk::AbstractSdkError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -24,5 +24,17 @@ pub enum AppError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    DappError(#[from] AbstractAppError),
+    DappError(#[from] AdapterError),
+
+    #[error("{0}")]
+    VersionControl(#[from] VersionControlError),
+
+    #[error("{0}")]
+    Instantiate2Address(#[from] Instantiate2AddressError),
+
+    #[error("Unauthorized")]
+    Unauthorized {},
+
+    #[error("Ibc Transfer failed {0}")]
+    Transfer(String),
 }

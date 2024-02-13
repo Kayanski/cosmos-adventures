@@ -1,5 +1,6 @@
+workspace = { members = ["scripts"] }
 [package]
-name = "app"
+name = "cosmos-adventures-hub"
 version = "0.0.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
@@ -34,8 +35,13 @@ required-features = ["daemon"]
 [features]
 default = ["export"]
 export = []
-schema = ["abstract-app/schema"]
-interface = ["export", "abstract-app/interface-macro", "dep:cw-orch"]
+schema = ["abstract-adapter/schema"]
+interface = [
+  "export",
+  "dep:cw-orch",
+  "dep:abstract-interface",
+  "dep:abstract-client",
+]
 daemon = ["interface", "cw-orch/daemon"]
 
 [dependencies]
@@ -46,15 +52,23 @@ cw-storage-plus = "1.1.0"
 thiserror = { version = "1.0.50" }
 schemars = "0.8"
 cw-asset = { version = "3.0.0" }
-abstract-app = { version = "0.20" }
+abstract-adapter = { version = "0.20" }
+abstract-sdk = "0.20.0"
+abstract-core = "0.20.0"
 
 # Dependencies for interface
+polytone = { package = "abstract-polytone", version = "1.0.0" }
 cw-orch = { version = "0.19.1", optional = true }
+abstract-interface = { version = "0.20.0", optional = true }
+abstract-client = { version = "0.20", optional = true }
+cw721-base = { version = "0.15.0", features = ["library"] }
+cw721-metadata-onchain = "0.15.0"
+cw721 = "0.15.0"
 
 [dev-dependencies]
-app = { path = ".", features = ["interface"] }
+cosmos-adventures-hub = { path = ".", features = ["interface"] }
 abstract-client = { version = "0.20" }
-abstract-app = { version = "0.20", features = ["test-utils"] }
+abstract-adapter = { version = "0.20", features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"

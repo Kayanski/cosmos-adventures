@@ -1,7 +1,6 @@
-use app::contract::APP_ID;
-use app::AppInterface;
+use cosmos_adventures_hub::contract::APP_ID;
+use cosmos_adventures_hub::CosmosAdventuresHub;
 
-use abstract_app::abstract_testing::OWNER;
 use cw_orch::prelude::*;
 
 /// This is the raw way to access the cw-orchestrator logic.
@@ -9,12 +8,12 @@ use cw_orch::prelude::*;
 #[test]
 fn successful_wasm() {
     // Create a sender
-    let sender = Addr::unchecked(OWNER);
+    let sender = Addr::unchecked("sender");
     // Create the mock
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = AppInterface::new(APP_ID, mock);
+    let contract = CosmosAdventuresHub::new(APP_ID, mock);
     // Panics if no path to a .wasm file is found
     contract.wasm();
 }
