@@ -1,6 +1,5 @@
 pub mod execute;
 pub mod instantiate;
-pub mod internal;
 pub mod query;
 
 pub use crate::handlers::{

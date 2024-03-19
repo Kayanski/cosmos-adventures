@@ -1,4 +1,6 @@
-workspace = { members = ["scripts"] }
+[workspace]
+members = ["scripts", "./"]
+
 [package]
 name = "cosmos-adventures-hub"
 version = "0.0.1"
@@ -41,6 +43,7 @@ interface = [
   "dep:cw-orch",
   "dep:abstract-interface",
   "dep:abstract-client",
+  "dep:semver",
 ]
 daemon = ["interface", "cw-orch/daemon"]
 
@@ -52,26 +55,30 @@ cw-storage-plus = "1.1.0"
 thiserror = { version = "1.0.50" }
 schemars = "0.8"
 cw-asset = { version = "3.0.0" }
-abstract-adapter = { version = "0.20" }
-abstract-sdk = "0.20.0"
-abstract-core = "0.20.0"
+abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-ibc-host = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", default-features = false }
 
 # Dependencies for interface
 polytone = { package = "abstract-polytone", version = "1.0.0" }
-cw-orch = { version = "0.19.1", optional = true }
-abstract-interface = { version = "0.20.0", optional = true }
-abstract-client = { version = "0.20", optional = true }
+cw-orch = { version = "0.20.1", optional = true }
+abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", optional = true }
+abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", optional = true }
 cw721-base = { version = "0.15.0", features = ["library"] }
 cw721-metadata-onchain = "0.15.0"
 cw721 = "0.15.0"
+semver = { version = "1.0", optional = true }
 
 [dev-dependencies]
 cosmos-adventures-hub = { path = ".", features = ["interface"] }
-abstract-client = { version = "0.20" }
-abstract-adapter = { version = "0.20", features = ["test-utils"] }
+abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", features = [
+  "test-utils",
+], branch = "feature/module-ibc" }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = { version = "0.19.1" }
+cw-orch = { version = "0.20.1" }
 clap = { version = "4.3.7", features = ["derive"] }

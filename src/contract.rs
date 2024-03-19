@@ -1,42 +1,42 @@
 use crate::ibc::{self, TRANSFER_CALLBACK};
-use crate::msg::AppMigrateMsg;
+use crate::msg::HubMigrateMsg;
 use crate::{
-    error::AppError,
+    error::HubError,
     handlers,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
-    replies::{self, ACCOUNT_CREATION_REPLY},
+    msg::{HubExecuteMsg, HubInstantiateMsg, HubQueryMsg},
 };
 use abstract_adapter::AdapterContract;
 use cosmwasm_std::Response;
 
 /// The version of your app
-pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const HUB_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Namespace
-pub const NAMESPACE: &str = "comsos-adventures";
+pub const NAMESPACE: &str = "cosmos-adventures";
 /// The id of the app
-pub const APP_ID: &str = "cosmos-adventures:hub";
+pub const HUB_ID: &str = "cosmos-adventures:hub";
 
 /// The type of the result returned by your app's entry points.
-pub type AppResult<T = Response> = Result<T, AppError>;
+pub type HubResult<T = Response> = Result<T, HubError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type App =
-    AdapterContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
+pub type Hub =
+    AdapterContract<HubError, HubInstantiateMsg, HubExecuteMsg, HubQueryMsg, HubMigrateMsg>;
 
-const APP: App = App::new(APP_ID, APP_VERSION, None)
+const HUB: Hub = Hub::new(HUB_ID, HUB_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
-    .with_replies(&[(ACCOUNT_CREATION_REPLY, replies::account_creation_reply)])
-    .with_ibc_callbacks(&[(TRANSFER_CALLBACK, ibc::transfer::transfer_callback)]);
+    .with_replies(&[])
+    .with_ibc_callbacks(&[(TRANSFER_CALLBACK, ibc::transfer::transfer_callback)])
+    .with_module_ibc(ibc::module_ibc::receive_module_ibc);
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_adapter::export_endpoints!(APP, App);
+abstract_adapter::export_endpoints!(HUB, Hub);
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::msg::AppInstantiateMsg;
+    use crate::msg::HubInstantiateMsg;
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
     use abstract_interface::AdapterDeployer;
     use abstract_interface::RegisteredModule;
@@ -46,13 +46,13 @@ pub mod interface {
     use cw_orch::interface;
     use cw_orch::prelude::*;
 
-    use super::APP;
+    use super::HUB;
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct CosmosAdventuresHub<Chain>;
 
     // Implement deployer trait
-    impl<Chain: CwEnv> AdapterDeployer<Chain, AppInstantiateMsg> for CosmosAdventuresHub<Chain> {}
+    impl<Chain: CwEnv> AdapterDeployer<Chain, HubInstantiateMsg> for CosmosAdventuresHub<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for CosmosAdventuresHub<Chain> {
         fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
@@ -76,11 +76,11 @@ pub mod interface {
         type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
-            APP.module_id()
+            HUB.module_id()
         }
 
         fn module_version<'a>() -> &'a str {
-            APP.version()
+            HUB.version()
         }
     }
 

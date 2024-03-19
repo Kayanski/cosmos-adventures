@@ -7,7 +7,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum AppError {
+pub enum HubError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -24,7 +24,7 @@ pub enum AppError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    DappError(#[from] AdapterError),
+    AdapterError(#[from] AdapterError),
 
     #[error("{0}")]
     VersionControl(#[from] VersionControlError),

@@ -1,30 +1,23 @@
 use abstract_client::AbstractClient;
 use abstract_client::Application;
 
-use abstract_client::GovernanceDetails;
 use abstract_client::Namespace;
-use abstract_core::account_factory;
 use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::ibc_client;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_core::objects::AccountId;
 use abstract_core::proxy;
-use abstract_core::IBC_CLIENT;
 use abstract_core::PROXY;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::ManagerExecFns;
-use abstract_interface::ManagerQueryFns;
-use abstract_interface::VCQueryFns;
 use ca_scripts::nft::Cw721;
 use ca_scripts::nft::ExecuteMsgFns;
 use ca_scripts::nft::QueryMsgFns as _;
-use cosmos_adventures_hub::msg::AppExecuteMsg;
 use cosmos_adventures_hub::msg::ExecuteMsg;
-use cosmos_adventures_hub::msg::InternalExecuteMsg;
+use cosmos_adventures_hub::msg::HubExecuteMsg;
 use cosmos_adventures_hub::{
-    contract::APP_ID,
-    msg::{AppInstantiateMsg, ConfigResponse},
+    contract::HUB_ID,
+    msg::{ConfigResponse, HubInstantiateMsg},
     *,
 };
 use cw721_metadata_onchain::Metadata;
@@ -34,7 +27,7 @@ use cw_orch::{anyhow, prelude::*};
 use ca_scripts::abstract_ibc::ibc_abstract_setup;
 use cosmwasm_std::Addr;
 use cw_orch_interchain::interchain::InterchainEnv;
-use cw_orch_interchain::interchain::MockInterchainEnv;
+use cw_orch_interchain::interchain::MockBech32InterchainEnv;
 
 fn get_nft<Chain: CwEnv>(c: &CosmosAdventuresHub<Chain>) -> anyhow::Result<Cw721<Chain>> {
     let ConfigResponse {
@@ -58,7 +51,7 @@ fn setup<Chain: CwEnv>(
     let nft = Cw721::new("nft_metadata", chain.clone());
     nft.upload()?;
 
-    let namespace = Namespace::from_id(APP_ID)?;
+    let namespace = Namespace::from_id(HUB_ID)?;
 
     // You can set up Abstract with a builder.
     let client = AbstractClient::builder(chain.clone()).build()?;
@@ -69,7 +62,7 @@ fn setup<Chain: CwEnv>(
         .install_on_sub_account(false)
         .build()?;
 
-    publisher.publish_adapter::<_, CosmosAdventuresHub<_>>(AppInstantiateMsg {
+    publisher.publish_adapter::<_, CosmosAdventuresHub<_>>(HubInstantiateMsg {
         nft_code_id: nft.code_id()?,
         lost_token_uri: "https://link.org".to_string(),
         lost_metadata: Metadata {
@@ -101,28 +94,9 @@ fn setup<Chain: CwEnv>(
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked("sender"));
+    let chain = MockBech32::new("mock");
     let (_, adapter) = setup(chain.clone())?;
     let adapter: CosmosAdventuresHub<_> = adapter.module()?;
-
-    let ConfigResponse { account, .. } = adapter.config()?;
-
-    // We assert the create account is the right one, have has the right owner
-    let account_base = AbstractAccount::new(&Abstract::load_from(chain.clone())?, account);
-    let account_info = account_base.manager.info()?.info;
-    if let GovernanceDetails::Monarchy { monarch } = &account_info.governance_details {
-        if adapter.address()? != monarch {
-            panic!(
-                "Expected contract controlled governance : {:?}",
-                account_info
-            )
-        }
-    } else {
-        panic!(
-            "Expected contract controlled governance : {:?}",
-            account_info
-        )
-    }
 
     // We assert the nft contract is ok and has the right admin
     let nft = get_nft(&adapter)?;
@@ -135,7 +109,7 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn successful_mint() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked("sender"));
+    let chain = MockBech32::new("mock");
     let (client, adapter) = setup(chain.clone())?;
 
     // We create an account which will mint a token
@@ -152,10 +126,10 @@ fn successful_mint() -> anyhow::Result<()> {
 
     // Account can mint
     account.manager.execute_on_module(
-        APP_ID,
+        HUB_ID,
         ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: Some(account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::Mint {},
+            request: HubExecuteMsg::Mint {},
         }),
     )?;
 
@@ -167,10 +141,10 @@ fn successful_mint() -> anyhow::Result<()> {
 
     // Main Account can mint
     main_account.manager.execute_on_module(
-        APP_ID,
+        HUB_ID,
         ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: Some(main_account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::Mint {},
+            request: HubExecuteMsg::Mint {},
         }),
     )?;
     let tokens = nft.tokens(chain.sender().to_string(), None, None)?;
@@ -184,8 +158,7 @@ fn successful_mint() -> anyhow::Result<()> {
 fn successful_ibc() -> anyhow::Result<()> {
     env_logger::init();
 
-    let sender = &Addr::unchecked("sender");
-    let interchain = MockInterchainEnv::new(vec![("juno-1", sender), ("phoenix-1", sender)]);
+    let interchain = MockBech32InterchainEnv::new(vec![("juno-1", "juno"), ("phoenix-1", "terra")]);
     let juno = interchain.chain("juno-1")?;
     let terra = interchain.chain("phoenix-1")?;
 
@@ -194,15 +167,9 @@ fn successful_ibc() -> anyhow::Result<()> {
     // We create a new polytone connection between the chains
     ibc_abstract_setup(&interchain, "juno-1", "phoenix-1")?;
 
-    // We register the src account as a whitelist address on the dst chain
-    let contract_account_id = src_adapter.config()?.account;
     let src_account = AbstractAccount::new(
         &Abstract::load_from(juno.clone())?,
         src_adapter.account().id()?,
-    );
-    let dst_account = AbstractAccount::new(
-        &Abstract::load_from(terra.clone())?,
-        dst_adapter.account().id()?,
     );
 
     // Create a remote account for the src-account
@@ -218,34 +185,7 @@ fn successful_ibc() -> anyhow::Result<()> {
         },
     )?;
 
-    interchain.wait_ibc(&"juno-1".to_string(), create_account_response)?;
-
-    // Install the adapter on the src adapter account
-    let register_response = src_account.manager.execute_on_module(
-        APP_ID,
-        ExecuteMsg::Module(AdapterRequestMsg {
-            proxy_address: Some(dst_account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::Internal(InternalExecuteMsg::Connect {
-                chain: ChainName::from_chain_id("phoenix-1"),
-            }),
-        }),
-    )?;
-
-    interchain.wait_ibc(&"juno-1".to_string(), register_response)?;
-
-    // Whitelist the src adapter account on the dst_adapter account
-    dst_account.manager.execute_on_module(
-        APP_ID,
-        ExecuteMsg::Module(AdapterRequestMsg {
-            proxy_address: Some(dst_account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::Internal(InternalExecuteMsg::Whitelist {
-                account: AccountId::remote(
-                    contract_account_id.seq(),
-                    vec![ChainName::from_chain_id("juno-1")],
-                )?,
-            }),
-        }),
-    )?;
+    interchain.wait_ibc("juno-1", create_account_response)?;
 
     let src_nft = get_nft(&src_adapter.module()?)?;
     let dst_nft = get_nft(&dst_adapter.module()?)?;
@@ -258,10 +198,10 @@ fn successful_ibc() -> anyhow::Result<()> {
     );
 
     src_account.manager.execute_on_module(
-        APP_ID,
+        HUB_ID,
         ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: Some(src_account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::Mint {},
+            request: HubExecuteMsg::Mint {},
         }),
     )?;
     // We query the token id
@@ -271,17 +211,17 @@ fn successful_ibc() -> anyhow::Result<()> {
     src_nft.approve(src_adapter.address()?.to_string(), token_id.clone(), None)?;
 
     let tx_response = src_account.manager.execute_on_module(
-        APP_ID,
+        HUB_ID,
         ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: Some(src_account.proxy.address()?.to_string()),
-            request: AppExecuteMsg::IbcTransfer {
+            request: HubExecuteMsg::IbcTransfer {
                 token_id,
                 recipient_chain: "phoenix".to_string(),
             },
         }),
     )?;
 
-    interchain.wait_ibc(&"juno-1".to_string(), tx_response)?;
+    interchain.wait_ibc("juno-1", tx_response)?;
 
     // We check the token doesn't exist anymore on the contract
     let tokens = src_nft.all_tokens(None, None)?;

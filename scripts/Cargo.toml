@@ -10,12 +10,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.79"
-cw-orch = "0.19.1"
-cw-orch-interchain = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
+cw-orch = "0.20.1"
+cw-orch-interchain = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
 abstract-cw-orch-polytone = "1.0.4"
-abstract-interface = "0.20.0"
-abstract-core = "0.20.0"
-abstract-sdk = "0.20.0"
 abstract-polytone = "1.0.5"
 cosmos-adventures-hub = { version = "0.0.1", path = "..", features = [
     "interface",
@@ -24,6 +21,9 @@ cw721 = "0.15.0"
 cw721-base = "0.15.0"
 cw721-metadata-onchain = "0.15.0"
 cosmwasm-std = "1.5.3"
-abstract-client = "0.20.0"
+abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 cosmwasm-schema = "1.5.3"
 env_logger = "0.11.1"

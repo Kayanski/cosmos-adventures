@@ -7,7 +7,7 @@
 //! ```bash
 //! $ just publish uni-6 osmo-test-5
 //! ```
-use abstract_app::objects::namespace::Namespace;
+use abstract_adapter::objects::namespace::Namespace;
 use abstract_client::{AbstractClient, Publisher};
 use app::{contract::APP_ID, AppInterface};
 use clap::Parser;

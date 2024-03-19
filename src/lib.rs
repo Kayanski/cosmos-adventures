@@ -9,4 +9,4 @@ pub mod state;
 #[cfg(feature = "interface")]
 pub use contract::interface::CosmosAdventuresHub;
 #[cfg(feature = "interface")]
-pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};
+pub use msg::{HubExecuteMsgFns, HubQueryMsgFns};
