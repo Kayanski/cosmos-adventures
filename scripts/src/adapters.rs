@@ -1,12 +1,7 @@
 use abstract_client::AbstractClient;
 use abstract_client::Account;
-use abstract_client::Application;
 
-use abstract_client::Environment;
 use abstract_client::Namespace;
-use abstract_interface::Abstract;
-use abstract_interface::AbstractAccount;
-use abstract_interface::ManagerExecFns;
 use cosmos_adventures_hub::{contract::HUB_ID, msg::HubInstantiateMsg, *};
 use cosmwasm_std::coin;
 use cw721_metadata_onchain::Metadata;
@@ -76,7 +71,7 @@ pub fn setup_adapters<Chain: CwEnv>(chain: Chain) -> anyhow::Result<AbstractClie
 /// Set up the test environment with an Account that has the App installed
 #[allow(clippy::type_complexity)]
 pub fn setup_account<Chain: CwEnv>(
-    client: AbstractClient<Chain>,
+    client: &AbstractClient<Chain>,
 ) -> anyhow::Result<Account<Chain>> {
     let account = client
         .account_builder()

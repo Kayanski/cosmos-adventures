@@ -10,6 +10,7 @@ use abstract_core::ibc_host::HostAction;
 use abstract_core::manager;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::objects::chain_name::ChainName;
+use abstract_core::objects::AccountId;
 use abstract_core::proxy;
 use abstract_core::PROXY;
 use abstract_cw_orch_polytone::Polytone;
@@ -66,7 +67,7 @@ fn get_nft<Chain: CwEnv>(c: &CosmosAdventuresHub<Chain>) -> anyhow::Result<Cw721
 fn successful_install() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = setup_adapters(chain.clone())?;
-    let account = setup_account(client)?;
+    let account = setup_account(&client)?;
 
     let hub = account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;
     let hub: CosmosAdventuresHub<_> = hub.module()?;
@@ -88,8 +89,9 @@ fn successful_mint() -> anyhow::Result<()> {
     let terra = interchain.chain("phoenix-1")?;
 
     let src_client = setup_adapters(juno.clone())?;
-    let src_account = setup_account(src_client)?;
+    let src_account = setup_account(&src_client)?;
     let dst_client = setup_adapters(terra.clone())?;
+    let dst_account = setup_account(&dst_client)?;
     ibc_abstract_setup(&interchain, "juno-1", "phoenix-1")?;
 
     // The account executes some actions on their remote account :
@@ -164,8 +166,26 @@ fn successful_mint() -> anyhow::Result<()> {
         None,
     )?;
 
-    // ANd wait for IBC execution
+    // And wait for IBC execution
     interchain.wait_ibc("juno-1", mint_response)?;
+
+    // We make sure the distant nft has a minted item that belongs to our proxy
+    let distant_hub = dst_account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;
+
+    let nft = get_nft(&distant_hub)?;
+
+    let all_tokens = nft.all_tokens(None, None)?;
+
+    assert_eq!(all_tokens.tokens.len(), 1);
+    assert_eq!(all_tokens.tokens[0], "phoenix>0");
+
+    let this_token = nft.owner_of("phoenix>0".to_string(), None)?;
+    let proxy_addr = dst_client.account_from(AccountId::remote(
+        src_account.id()?.seq(),
+        vec![ChainName::from_chain_id("juno-1")],
+    )?)?;
+    assert_eq!(proxy_addr.proxy()?, this_token.owner);
+
     Ok(())
 }
 
