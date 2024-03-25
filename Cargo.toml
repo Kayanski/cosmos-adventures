@@ -1,84 +1,59 @@
 [workspace]
-members = ["scripts", "./"]
+members = ["scripts", "hub", "modules/*", "packages/*"]
 
-[package]
-name = "cosmos-adventures-hub"
-version = "0.0.1"
-authors = [
-  "CyberHoward <cyberhoward@protonmail.com>",
-  "Adair <adair@abstract.money>",
-  "Abstract Money <contact@abstract.money>",
-]
-edition = "2021"
-homepage = ""
-documentation = ""
-repository = ""
-license = "GPL-3.0-or-later"
-keywords = ["cosmos", "cosmwasm", "abstractsdk"]
-resolver = "2"
+[workspace.dependencies]
 
-exclude = ["contract.wasm", "hash.txt"]
+# Internal
+cosmos-adventures-hub = { path = "./hub" }
+minter = { path = "./modules/minter" }
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+# Dependencies for interface
+cw-orch = { version = "0.20.1" }
 
-[[example]]
-name = "schema"
-required-features = ["schema"]
+# External
+speculoos = "0.11.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+clap = { version = "4.3.7", features = ["derive"] }
+thiserror = { version = "1.0.50" }
+schemars = "0.8"
+semver = { version = "1.0" }
+anyhow = "1.0.79"
 
-[[example]]
-name = "local_daemon"
-required-features = ["daemon"]
-
-[[example]]
-name = "publish"
-required-features = ["daemon"]
-
-[features]
-default = ["export"]
-export = []
-schema = ["abstract-adapter/schema"]
-interface = [
-  "export",
-  "dep:cw-orch",
-  "dep:abstract-interface",
-  "dep:abstract-client",
-  "dep:semver",
-]
-daemon = ["interface", "cw-orch/daemon"]
-
-[dependencies]
+# Cosmwasm
 cosmwasm-std = { version = "1.5.3" }
 cosmwasm-schema = { version = "1.5.3" }
 cw-controllers = { version = "1.1.2" }
 cw-storage-plus = "1.1.0"
-thiserror = { version = "1.0.50" }
-schemars = "0.8"
 cw-asset = { version = "3.0.0" }
+
+# NFTs
+cw721-base = { version = "0.15.0", features = ["library"] }
+cw721-metadata-onchain = "0.15.0"
+cw721 = "0.15.0"
+
+# Abstract
+abstract-app = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 abstract-ibc-host = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", default-features = false }
-
-# Dependencies for interface
-polytone = { package = "abstract-polytone", version = "1.0.0" }
-cw-orch = { version = "0.20.1", optional = true }
-abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", optional = true }
-abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", optional = true }
-cw721-base = { version = "0.15.0", features = ["library"] }
-cw721-metadata-onchain = "0.15.0"
-cw721 = "0.15.0"
-semver = { version = "1.0", optional = true }
-
-[dev-dependencies]
-cosmos-adventures-hub = { path = ".", features = ["interface"] }
+abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
 abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", features = [
-  "test-utils",
-], branch = "feature/module-ibc" }
-speculoos = "0.11.0"
-semver = "1.0"
-dotenv = "0.15.0"
-env_logger = "0.10.0"
-cw-orch = { version = "0.20.1" }
-clap = { version = "4.3.7", features = ["derive"] }
+abstract-interchain-tests = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+
+polytone = { package = "abstract-polytone", version = "1.0.0" }
+abstract-cw-orch-polytone = { version = "1.0.4" }
+
+
+[patch.crates-io]
+abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-manager = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-version-control = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-ibc-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-ibc-host = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-module-factory = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-account-factory = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }

@@ -3,7 +3,7 @@ use crate::error::HubError;
 use crate::helpers::next_token_id;
 use crate::ibc::TRANSFER_CALLBACK;
 use crate::msg::{HubExecuteMsg, HubIbcCallbackMsg, HubIbcMsg};
-use crate::state::{CONFIG, NFT};
+use crate::state::NFT;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::ibc_client::InstalledModuleIdentification;
 use abstract_core::objects::module::ModuleInfo;
@@ -11,9 +11,10 @@ use abstract_core::objects::nested_admin::query_top_level_owner;
 use abstract_core::{ibc_client, IBC_CLIENT};
 use abstract_sdk::features::{AccountIdentification, ModuleIdentification};
 use abstract_sdk::{AbstractResponse, ModuleInterface};
-use cosmwasm_std::{to_json_binary, wasm_execute, DepsMut, Env, MessageInfo};
+use common::NAMESPACE;
+use cosmwasm_std::{ensure_eq, to_json_binary, wasm_execute, DepsMut, Env, MessageInfo};
 use cw721::{NftInfoResponse, OwnerOfResponse};
-use cw721_metadata_onchain::ExecuteMsg;
+use cw721_metadata_onchain::{ExecuteMsg, Metadata};
 use cw721_metadata_onchain::{Extension, QueryMsg};
 
 pub fn execute_handler(
@@ -28,7 +29,12 @@ pub fn execute_handler(
             recipient_chain,
             token_id,
         } => ibc_transfer(deps, info, env, adapter, token_id, recipient_chain),
-        HubExecuteMsg::Mint {} => mint(deps, info, env, adapter),
+        HubExecuteMsg::Mint {
+            module_id,
+            token_uri,
+            metadata,
+        } => mint(deps, info, env, module_id, token_uri, metadata, adapter),
+        HubExecuteMsg::ModifyMetadata {} => todo!(),
     }
 }
 
@@ -94,7 +100,6 @@ fn ibc_transfer(
         callback_info: Some(CallbackInfo {
             id: TRANSFER_CALLBACK.to_string(),
             msg: Some(to_json_binary(&HubIbcCallbackMsg::BurnToken { token_id })?),
-            receiver: env.contract.address.to_string(),
         }),
     };
 
@@ -109,23 +114,32 @@ fn ibc_transfer(
         .add_message(ibc_msg))
 }
 
-fn mint(mut deps: DepsMut, _info: MessageInfo, env: Env, adapter: Hub) -> HubResult {
-    // We make the abstract account pay a little mint fee (very low, but that allows showcasing token transfers)
+fn mint(
+    mut deps: DepsMut,
+    info: MessageInfo,
+    env: Env,
+    module_id: String,
+    token_uri: String,
+    metadata: Metadata,
+    adapter: Hub,
+) -> HubResult {
+    // This endpoint is permissionned because we're the hub, only authorized installed modules can call this
+    let module_addr = adapter.modules(deps.as_ref()).module_address(&module_id)?;
+    ensure_eq!(module_addr, info.sender, HubError::Unauthorized {});
+    let namespace = ModuleInfo::from_id_latest(&module_id)?.namespace;
+    ensure_eq!(namespace.as_str(), NAMESPACE, HubError::WrongNamespace {});
+
     let account_base = adapter.account_base(deps.as_ref())?;
 
-    let top_level_owner = query_top_level_owner(&deps.querier, account_base.manager)?;
-
     // We mint the token to the recipient
-
-    let config = CONFIG.load(deps.storage)?;
     let token_id = next_token_id(deps.branch(), env)?;
     let mint_msg = wasm_execute(
         NFT.load(deps.storage)?,
         &ExecuteMsg::Mint(cw721_base::MintMsg {
             token_id,
-            owner: top_level_owner.to_string(),
-            token_uri: Some(config.lost_token_uri),
-            extension: Some(config.lost_metadata),
+            owner: account_base.proxy.to_string(),
+            token_uri: Some(token_uri),
+            extension: Some(metadata),
         }),
         vec![],
     )?;

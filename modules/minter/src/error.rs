@@ -7,7 +7,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum HubError {
+pub enum MinterError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -35,6 +35,12 @@ pub enum HubError {
     #[error("Unauthorized")]
     Unauthorized {},
 
+    #[error("Unauthorized, Wrong Namespace")]
+    WrongNamespace {},
+
     #[error("Ibc Transfer failed {0}")]
     Transfer(String),
+
+    #[error("You have minted too muchtokens already. Limit: {0}")]
+    TooMuchMinted(usize),
 }

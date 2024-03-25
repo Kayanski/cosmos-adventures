@@ -14,11 +14,7 @@ pub fn instantiate_handler(
     _hub: Hub,
     msg: HubInstantiateMsg,
 ) -> HubResult {
-    let config: Config = Config {
-        next_token_id: 0,
-        lost_token_uri: msg.lost_token_uri,
-        lost_metadata: msg.lost_metadata,
-    };
+    let config: Config = Config { next_token_id: 0 };
 
     // We need to create the NFT contract that will host everything locally
     let salt = b"nft_contract".to_vec();

@@ -1,0 +1,42 @@
+[package]
+name = "minter"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["export"]
+export = []
+cw-orch = ["dep:cw-orch"]
+schema = ["abstract-adapter/schema"]
+abstract-interface = ["dep:abstract-interface"]
+abstract-client = ["dep:abstract-client"]
+semver = ["dep:semver"]
+interface = [
+    "export",
+    "dep:cw-orch",
+    "dep:abstract-interface",
+    "dep:abstract-client",
+    "dep:semver",
+]
+daemon = ["interface", "cw-orch/daemon"]
+
+[lib]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+abstract-adapter = { workspace = true }
+abstract-client = { workspace = true, optional = true }
+abstract-core.workspace = true
+abstract-ibc-host.workspace = true
+abstract-interface = { workspace = true, optional = true }
+abstract-sdk.workspace = true
+cosmos-adventures-hub = { version = "0.0.1", path = "../../hub" }
+cosmwasm-schema.workspace = true
+cosmwasm-std = { workspace = true }
+cw-asset = { workspace = true }
+cw-controllers.workspace = true
+cw-orch = { workspace = true, optional = true }
+cw-storage-plus.workspace = true
+cw721-metadata-onchain = { workspace = true }
+semver = { workspace = true, optional = true }
+thiserror.workspace = true

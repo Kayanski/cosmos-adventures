@@ -12,8 +12,6 @@ abstract_adapter::adapter_msg_types!(Hub, HubExecuteMsg, HubQueryMsg);
 pub struct HubInstantiateMsg {
     pub admin_account: AccountId,
     pub nft_code_id: u64,
-    pub lost_token_uri: String,
-    pub lost_metadata: Metadata,
 }
 
 /// App execute messages
@@ -27,8 +25,17 @@ pub enum HubExecuteMsg {
         recipient_chain: String,
     },
 
-    /// Mint a new lost token on this contract
-    Mint {},
+    /// Mint a new lost token on this contract   
+    /// This is an authorized endpoint that is only callable by another app in the same namespace
+    Mint {
+        module_id: String,
+        token_uri: String,
+        metadata: Metadata,
+    },
+
+    /// Change the metadata of an NFT
+    /// This is an authorized endpoint that is only callable by another app in the same namespace
+    ModifyMetadata {},
 }
 
 #[cosmwasm_schema::cw_serde]

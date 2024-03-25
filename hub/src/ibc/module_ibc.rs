@@ -1,5 +1,5 @@
 use crate::{
-    contract::{Hub, HubResult, NAMESPACE},
+    contract::{Hub, HubResult},
     msg::HubIbcMsg,
     state::NFT,
 };
@@ -9,6 +9,7 @@ use abstract_core::{
 };
 use abstract_ibc_host::endpoints::packet::client_to_host_account_id;
 use abstract_sdk::AccountVerification;
+use common::NAMESPACE;
 use cosmwasm_std::{from_json, wasm_execute, DepsMut, Env, Response};
 use cw721_base::MintMsg;
 use cw721_metadata_onchain::{ExecuteMsg, Extension};
