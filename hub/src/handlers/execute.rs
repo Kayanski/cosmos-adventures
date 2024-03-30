@@ -1,16 +1,15 @@
 use crate::contract::{Hub, HubResult};
 use crate::error::HubError;
-use crate::helpers::next_token_id;
+use crate::helpers::next_token_id_mut;
 use crate::ibc::TRANSFER_CALLBACK;
 use crate::msg::{HubExecuteMsg, HubIbcCallbackMsg, HubIbcMsg};
 use crate::state::NFT;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::ibc_client::InstalledModuleIdentification;
 use abstract_core::objects::module::ModuleInfo;
-use abstract_core::objects::nested_admin::query_top_level_owner;
 use abstract_core::{ibc_client, IBC_CLIENT};
 use abstract_sdk::features::{AccountIdentification, ModuleIdentification};
-use abstract_sdk::{AbstractResponse, ModuleInterface};
+use abstract_sdk::{AbstractResponse, AccountAction, Execution, ModuleInterface};
 use common::NAMESPACE;
 use cosmwasm_std::{ensure_eq, to_json_binary, wasm_execute, DepsMut, Env, MessageInfo};
 use cw721::{NftInfoResponse, OwnerOfResponse};
@@ -50,7 +49,6 @@ fn ibc_transfer(
 
     // We authenticate the account that is calling the contract
     let target_account = hub.account_base(deps.as_ref())?;
-    let addr = query_top_level_owner(&deps.querier, target_account.manager.clone())?;
 
     // We verify the NFT is owned by the addr
     let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
@@ -60,19 +58,21 @@ fn ibc_transfer(
             include_expired: None,
         },
     )?;
-    if owner.owner != addr {
+    if owner.owner != target_account.proxy_address(deps.as_ref())? {
         return Err(HubError::Unauthorized {});
     }
 
     // We transfer the NFT from the top level owner to this contract to lock it
-    let nft_msg = wasm_execute(
-        &nft,
-        &ExecuteMsg::TransferNft {
-            recipient: env.contract.address.to_string(),
-            token_id: token_id.clone(),
-        },
-        vec![],
-    )?;
+    let nft_msg = hub
+        .executor(deps.as_ref())
+        .execute(vec![AccountAction::from_vec(vec![wasm_execute(
+            &nft,
+            &ExecuteMsg::TransferNft {
+                recipient: env.contract.address.to_string(),
+                token_id: token_id.clone(),
+            },
+            vec![],
+        )?])])?;
 
     // We send an IBC mint message from to the distant chain
     // We query the NFT metadata
@@ -132,7 +132,7 @@ fn mint(
     let account_base = adapter.account_base(deps.as_ref())?;
 
     // We mint the token to the recipient
-    let token_id = next_token_id(deps.branch(), env)?;
+    let token_id = next_token_id_mut(deps.branch(), env)?;
     let mint_msg = wasm_execute(
         NFT.load(deps.storage)?,
         &ExecuteMsg::Mint(cw721_base::MintMsg {

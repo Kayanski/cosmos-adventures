@@ -21,11 +21,17 @@ pub fn execute_handler(
     msg: MinterExecuteMsg,
 ) -> MinterResult {
     match msg {
-        MinterExecuteMsg::Mint {} => mint(deps, info, env, adapter),
+        MinterExecuteMsg::Mint { send_back } => mint(deps, info, env, adapter, send_back),
     }
 }
 
-fn mint(mut deps: DepsMut, _info: MessageInfo, _env: Env, adapter: Minter) -> MinterResult {
+fn mint(
+    mut deps: DepsMut,
+    _info: MessageInfo,
+    _env: Env,
+    adapter: Minter,
+    send_back: bool,
+) -> MinterResult {
     // We make sure this account is a remote account, with an associated trace
     let account = adapter.account_id(deps.as_ref())?;
 
@@ -55,6 +61,7 @@ fn mint(mut deps: DepsMut, _info: MessageInfo, _env: Env, adapter: Minter) -> Mi
         target_module: current_module_info,
         msg: to_json_binary(&MinterIbcMsg::IbcMint {
             local_account_id: account,
+            send_back,
         })?,
         callback_info: None,
     };

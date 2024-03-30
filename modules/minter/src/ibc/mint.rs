@@ -9,7 +9,10 @@ use abstract_core::{
 };
 use abstract_ibc_host::endpoints::packet::client_to_host_account_id;
 use abstract_sdk::{AccountVerification, ModuleInterface};
-use cosmos_adventures_hub::{contract::HUB_ID, msg::HubExecuteMsg};
+use cosmos_adventures_hub::{
+    contract::HUB_ID,
+    msg::{HubExecuteMsg, NextTokenIdResponse},
+};
 use cosmwasm_std::{from_json, wasm_execute, DepsMut, Env, Response};
 
 pub fn receive_module_ibc(
@@ -30,9 +33,17 @@ pub fn receive_module_ibc(
     let decoded_message: MinterIbcMsg = from_json(&msg.msg)?;
 
     match decoded_message {
-        MinterIbcMsg::IbcMint { local_account_id } => {
-            internal_ibc_mint_token(deps, env, app, msg.client_chain, local_account_id)
-        }
+        MinterIbcMsg::IbcMint {
+            local_account_id,
+            send_back,
+        } => internal_ibc_mint_token(
+            deps,
+            env,
+            app,
+            msg.client_chain,
+            local_account_id,
+            send_back,
+        ),
     }
 }
 
@@ -43,12 +54,13 @@ fn internal_ibc_mint_token(
     mut adapter: Minter,
     client_chain: ChainName,
     account_id: AccountId,
+    send_back: bool,
 ) -> MinterResult {
     // We get the new owner address
     // This corresponds to an distant account or a local account depending on local_account_id.trace
     // We mint a token on the app's local account
 
-    let target_account = client_to_host_account_id(client_chain, account_id);
+    let target_account = client_to_host_account_id(client_chain.clone(), account_id);
     let resolved_account = adapter
         .account_registry(deps.as_ref())?
         .account_base(&target_account)?;
@@ -60,7 +72,7 @@ fn internal_ibc_mint_token(
     let config = CONFIG.load(deps.storage)?;
     let module_addr = adapter.modules(deps.as_ref()).module_address(HUB_ID)?;
     let mint_msg = wasm_execute(
-        module_addr,
+        &module_addr,
         &cosmos_adventures_hub::msg::ExecuteMsg::Module(
             abstract_core::adapter::AdapterRequestMsg {
                 proxy_address: Some(resolved_account.proxy.to_string()),
@@ -74,5 +86,31 @@ fn internal_ibc_mint_token(
         vec![],
     )?;
 
-    Ok(Response::new().add_message(mint_msg))
+    let send_back_msg = send_back
+        .then(|| {
+            let next_token_id: NextTokenIdResponse = deps.querier.query_wasm_smart(
+                &module_addr,
+                &cosmos_adventures_hub::msg::QueryMsg::Module(
+                    cosmos_adventures_hub::msg::HubQueryMsg::NextTokenId {},
+                ),
+            )?;
+            wasm_execute(
+                &module_addr,
+                &cosmos_adventures_hub::msg::ExecuteMsg::Module(
+                    abstract_core::adapter::AdapterRequestMsg {
+                        proxy_address: Some(resolved_account.proxy.to_string()),
+                        request: HubExecuteMsg::IbcTransfer {
+                            token_id: next_token_id.next_token_id,
+                            recipient_chain: client_chain.to_string(),
+                        },
+                    },
+                ),
+                vec![],
+            )
+        })
+        .transpose()?;
+
+    Ok(Response::new()
+        .add_message(mint_msg)
+        .add_messages(send_back_msg))
 }

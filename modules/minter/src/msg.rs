@@ -24,7 +24,7 @@ pub struct MinterInstantiateMsg {
 pub enum MinterExecuteMsg {
     /// Mint a new lost token on this chain.   
     /// This is an endpoint that is callable by any account to mint an NFT.
-    Mint {},
+    Mint { send_back: bool },
 }
 
 /// App query messages
@@ -51,5 +51,8 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub enum MinterIbcMsg {
-    IbcMint { local_account_id: AccountId },
+    IbcMint {
+        local_account_id: AccountId,
+        send_back: bool,
+    },
 }

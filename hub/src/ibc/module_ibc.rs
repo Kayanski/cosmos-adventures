@@ -53,7 +53,7 @@ pub fn receive_module_ibc(
 #[allow(clippy::too_many_arguments)]
 fn internal_ibc_mint_token(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     hub: Hub,
     client_chain: ChainName,
     account_id: AccountId,
@@ -64,8 +64,27 @@ fn internal_ibc_mint_token(
     // We get the new owner address
     // This corresponds to an distant account or a local account depending on local_account_id.trace
     // We mint a token on the app's local account
+    let target_account = if account_id.is_remote() {
+        match account_id.trace() {
+            abstract_core::objects::account::AccountTrace::Local => unreachable!(),
+            abstract_core::objects::account::AccountTrace::Remote(trace) => {
+                if trace.last() == Some(&ChainName::from_chain_id(&env.block.chain_id)) {
+                    let mut new_trace = trace.clone();
+                    new_trace.pop();
+                    if new_trace.is_empty() {
+                        AccountId::local(account_id.seq())
+                    } else {
+                        AccountId::remote(account_id.seq(), new_trace)?
+                    }
+                } else {
+                    client_to_host_account_id(client_chain.clone(), account_id.clone())
+                }
+            }
+        }
+    } else {
+        client_to_host_account_id(client_chain.clone(), account_id.clone())
+    };
 
-    let target_account = client_to_host_account_id(client_chain, account_id);
     let resolved_account = hub
         .account_registry(deps.as_ref())?
         .account_base(&target_account)?;

@@ -13,8 +13,6 @@ use abstract_core::objects::chain_name::ChainName;
 use abstract_core::objects::AccountId;
 use abstract_core::proxy;
 use abstract_core::PROXY;
-use abstract_cw_orch_polytone::Polytone;
-use abstract_interchain_tests::setup::ibc_connect_polytone_and_abstract;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::InstallConfig;
@@ -90,6 +88,7 @@ fn successful_mint() -> anyhow::Result<()> {
 
     let src_client = setup_adapters(juno.clone())?;
     let src_account = setup_account(&src_client)?;
+
     let dst_client = setup_adapters(terra.clone())?;
     let dst_account = setup_account(&dst_client)?;
     ibc_abstract_setup(&interchain, "juno-1", "phoenix-1")?;
@@ -161,7 +160,7 @@ fn successful_mint() -> anyhow::Result<()> {
     let mint_response = minter.execute(
         &minter::msg::ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: Some(src_account.proxy()?.to_string()),
-            request: MinterExecuteMsg::Mint {},
+            request: MinterExecuteMsg::Mint { send_back: false },
         }),
         None,
     )?;
@@ -185,6 +184,125 @@ fn successful_mint() -> anyhow::Result<()> {
         vec![ChainName::from_chain_id("juno-1")],
     )?)?;
     assert_eq!(proxy_addr.proxy()?, this_token.owner);
+
+    Ok(())
+}
+
+#[test]
+fn successful_mint_send_back() -> anyhow::Result<()> {
+    let _ = env_logger::try_init();
+    let interchain = MockBech32InterchainEnv::new(vec![("juno-1", "juno"), ("phoenix-1", "terra")]);
+    let juno = interchain.chain("juno-1")?;
+    let terra = interchain.chain("phoenix-1")?;
+
+    let src_client = setup_adapters(juno.clone())?;
+    let src_account = setup_account(&src_client)?;
+    let dst_client = setup_adapters(terra.clone())?;
+    let dst_account = setup_account(&dst_client)?;
+    ibc_abstract_setup(&interchain, "juno-1", "phoenix-1")?;
+    ibc_abstract_setup(&interchain, "phoenix-1", "juno-1")?;
+
+    // The account executes some actions on their remote account :
+    // - Install Hub and Minter adapter
+    // - Mint a token
+    // We verify the nft exists and has been pinted to the right proxy address
+
+    let abstract_account =
+        AbstractAccount::new(&Abstract::load_from(juno.clone())?, src_account.id()?);
+
+    let remote_minter_address = CosmosAdventuresMinter::new(MINTER_ID, terra.clone())
+        .address()?
+        .to_string();
+
+    // We install the necessary modules in the remote account
+    let remote_actions_response = abstract_account.manager.execute_on_module(
+        PROXY,
+        proxy::ExecuteMsg::IbcAction {
+            msgs: vec![
+                ibc_client::ExecuteMsg::RemoteAction {
+                    host_chain: "phoenix".to_string(),
+                    action: HostAction::Dispatch {
+                        manager_msg: manager::ExecuteMsg::InstallModules {
+                            modules: vec![
+                                ModuleInstallConfig::new(
+                                    CosmosAdventuresMinter::<Mock>::module_info()?,
+                                    None,
+                                ),
+                                ModuleInstallConfig::new(
+                                    CosmosAdventuresHub::<Mock>::module_info()?,
+                                    None,
+                                ),
+                            ],
+                        },
+                    },
+                },
+                // We authorize the minter module to execute actions on the hub module on behalf of the account
+                ibc_client::ExecuteMsg::RemoteAction {
+                    host_chain: "phoenix".to_string(),
+                    action: HostAction::Dispatch {
+                        manager_msg: manager::ExecuteMsg::ExecOnModule {
+                            module_id: HUB_ID.to_string(),
+                            exec_msg: to_json_binary(
+                                &cosmos_adventures_hub::msg::ExecuteMsg::Base(BaseExecuteMsg {
+                                    proxy_address: None,
+                                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                                        to_add: vec![remote_minter_address],
+                                        to_remove: vec![],
+                                    },
+                                }),
+                            )?,
+                        },
+                    },
+                },
+                // We authorize IBC operations on the remote account
+                ibc_client::ExecuteMsg::RemoteAction {
+                    host_chain: "phoenix".to_string(),
+                    action: HostAction::Dispatch {
+                        manager_msg: manager::ExecuteMsg::UpdateSettings {
+                            ibc_enabled: Some(true),
+                        },
+                    },
+                },
+            ],
+        },
+    )?;
+
+    interchain.wait_ibc("juno-1", remote_actions_response)?;
+
+    // We mint the token locally
+    let _hub = src_account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;
+    let minter = src_account.install_adapter::<CosmosAdventuresMinter<_>>(&[])?;
+
+    juno.add_balance(&src_account.proxy()?, coins(MINT_COST, MINT_DENOM))?;
+
+    let mint_response = minter.execute(
+        &minter::msg::ExecuteMsg::Module(AdapterRequestMsg {
+            proxy_address: Some(src_account.proxy()?.to_string()),
+            request: MinterExecuteMsg::Mint { send_back: true },
+        }),
+        None,
+    )?;
+
+    // And wait for IBC execution
+    interchain.wait_ibc("juno-1", mint_response)?;
+
+    // We make sure the distant nft has no item because it was sent back
+    let distant_hub = dst_account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;
+    let nft = get_nft(&distant_hub)?;
+    let all_tokens = nft.all_tokens(None, None)?;
+    assert!(all_tokens.tokens.is_empty());
+
+    // We make the local nft has an item that was just transferred
+
+    let src_hub = src_account.application::<CosmosAdventuresHub<_>>()?;
+    let nft = get_nft(&src_hub)?;
+    let all_tokens = nft.all_tokens(None, None)?;
+
+    assert_eq!(all_tokens.tokens.len(), 1);
+    assert_eq!(all_tokens.tokens[0], "phoenix>0");
+
+    let this_token = nft.owner_of("phoenix>0".to_string(), None)?;
+    assert_eq!(src_account.proxy()?, this_token.owner);
 
     Ok(())
 }

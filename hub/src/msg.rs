@@ -62,6 +62,8 @@ pub enum HubIbcCallbackMsg {
 pub enum HubQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
+    #[returns(NextTokenIdResponse)]
+    NextTokenId {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -74,6 +76,6 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct CountResponse {
-    pub count: i32,
+pub struct NextTokenIdResponse {
+    pub next_token_id: String,
 }
