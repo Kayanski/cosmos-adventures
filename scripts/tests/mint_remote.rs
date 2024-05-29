@@ -42,9 +42,7 @@ use cw721_metadata_onchain::Metadata;
 // Use prelude to get all the necessary imports
 use cosmwasm_std::Addr;
 use cw_orch::{anyhow, prelude::*};
-use cw_orch_interchain::interchain::IbcQueryHandler;
-use cw_orch_interchain::interchain::InterchainEnv;
-use cw_orch_interchain::interchain::MockBech32InterchainEnv;
+use cw_orch_interchain::prelude::*;
 use minter::contract::interface::CosmosAdventuresMinter;
 use minter::contract::MINTER_ID;
 use minter::msg::MinterExecuteMsg;
@@ -105,15 +103,15 @@ fn successful_mint() -> anyhow::Result<()> {
         .address()?
         .to_string();
 
-    // We install the necessary modules in the remote account
     let remote_actions_response = abstract_account.manager.execute_on_module(
         PROXY,
         proxy::ExecuteMsg::IbcAction {
-            msgs: vec![
-                ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: "phoenix".to_string(),
-                    action: HostAction::Dispatch {
-                        manager_msg: manager::ExecuteMsg::InstallModules {
+            msg: ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: "phoenix".to_string(),
+                action: HostAction::Dispatch {
+                    manager_msgs: vec![
+                        // We install the necessary modules in the remote account
+                        manager::ExecuteMsg::InstallModules {
                             modules: vec![
                                 ModuleInstallConfig::new(
                                     CosmosAdventuresMinter::<Mock>::module_info()?,
@@ -125,13 +123,8 @@ fn successful_mint() -> anyhow::Result<()> {
                                 ),
                             ],
                         },
-                    },
-                },
-                // We authorize the minter module to execute actions on the hub module on behalf of the account
-                ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: "phoenix".to_string(),
-                    action: HostAction::Dispatch {
-                        manager_msg: manager::ExecuteMsg::ExecOnModule {
+                        // We authorize the minter module to execute actions on the hub module on behalf of the account
+                        manager::ExecuteMsg::ExecOnModule {
                             module_id: HUB_ID.to_string(),
                             exec_msg: to_json_binary(&minter::msg::ExecuteMsg::Base(
                                 BaseExecuteMsg {
@@ -143,9 +136,9 @@ fn successful_mint() -> anyhow::Result<()> {
                                 },
                             ))?,
                         },
-                    },
+                    ],
                 },
-            ],
+            },
         },
     )?;
 
@@ -218,11 +211,11 @@ fn successful_mint_send_back() -> anyhow::Result<()> {
     let remote_actions_response = abstract_account.manager.execute_on_module(
         PROXY,
         proxy::ExecuteMsg::IbcAction {
-            msgs: vec![
-                ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: "phoenix".to_string(),
-                    action: HostAction::Dispatch {
-                        manager_msg: manager::ExecuteMsg::InstallModules {
+            msg: ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: "phoenix".to_string(),
+                action: HostAction::Dispatch {
+                    manager_msgs: vec![
+                        manager::ExecuteMsg::InstallModules {
                             modules: vec![
                                 ModuleInstallConfig::new(
                                     CosmosAdventuresMinter::<Mock>::module_info()?,
@@ -233,14 +226,8 @@ fn successful_mint_send_back() -> anyhow::Result<()> {
                                     None,
                                 ),
                             ],
-                        },
-                    },
-                },
-                // We authorize the minter module to execute actions on the hub module on behalf of the account
-                ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: "phoenix".to_string(),
-                    action: HostAction::Dispatch {
-                        manager_msg: manager::ExecuteMsg::ExecOnModule {
+                        }, // We authorize the minter module to execute actions on the hub module on behalf of the account
+                        manager::ExecuteMsg::ExecOnModule {
                             module_id: HUB_ID.to_string(),
                             exec_msg: to_json_binary(
                                 &cosmos_adventures_hub::msg::ExecuteMsg::Base(BaseExecuteMsg {
@@ -251,19 +238,13 @@ fn successful_mint_send_back() -> anyhow::Result<()> {
                                     },
                                 }),
                             )?,
-                        },
-                    },
-                },
-                // We authorize IBC operations on the remote account
-                ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: "phoenix".to_string(),
-                    action: HostAction::Dispatch {
-                        manager_msg: manager::ExecuteMsg::UpdateSettings {
+                        }, // We authorize IBC operations on the remote account
+                        manager::ExecuteMsg::UpdateSettings {
                             ibc_enabled: Some(true),
                         },
-                    },
+                    ],
                 },
-            ],
+            },
         },
     )?;
 

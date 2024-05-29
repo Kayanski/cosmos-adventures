@@ -33,8 +33,9 @@ anyhow = { workspace = true }
 abstract-interface = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-client = { workspace = true }
+abstract-adapter = { workspace = true }
 abstract-cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
 abstract-ibc-host.workspace = true
 
-abstract-interchain-tests = {version="0.22.1"}
+abstract-interchain-tests = { version = "0.22.1" }
