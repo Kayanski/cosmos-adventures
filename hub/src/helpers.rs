@@ -1,4 +1,4 @@
-use abstract_core::objects::chain_name::ChainName;
+use abstract_adapter::std::objects::chain_name::ChainName;
 use cosmwasm_std::{Deps, DepsMut, Env};
 
 use crate::{contract::HubResult, state::CONFIG};

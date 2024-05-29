@@ -1,4 +1,4 @@
-use abstract_core::objects::AccountId;
+use abstract_adapter::std::objects::AccountId;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;

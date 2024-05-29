@@ -1,5 +1,5 @@
+use abstract_adapter::std::{objects::version_control::VersionControlError, AbstractError};
 use abstract_adapter::AdapterError;
-use abstract_core::{objects::version_control::VersionControlError, AbstractError};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;

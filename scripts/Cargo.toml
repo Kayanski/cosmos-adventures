@@ -10,7 +10,7 @@ edition = "2021"
 
 [dependencies]
 cw-orch = { workspace = true }
-cw-orch-interchain = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+cw-orch-interchain = { version = "0.1.0" }
 
 # NFT
 cw721 = { workspace = true }
@@ -31,10 +31,10 @@ anyhow = { workspace = true }
 
 # Abstract
 abstract-interface = { workspace = true }
-abstract-interchain-tests = { workspace = true }
-abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-client = { workspace = true }
 abstract-cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
 abstract-ibc-host.workspace = true
+
+abstract-interchain-tests = {version="0.22.1"}

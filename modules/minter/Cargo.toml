@@ -26,7 +26,6 @@ daemon = ["interface", "cw-orch/daemon"]
 [dependencies]
 abstract-adapter = { workspace = true }
 abstract-client = { workspace = true, optional = true }
-abstract-core.workspace = true
 abstract-ibc-host.workspace = true
 abstract-interface = { workspace = true, optional = true }
 abstract-sdk.workspace = true

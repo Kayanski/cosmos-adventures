@@ -4,10 +4,10 @@ use crate::helpers::next_token_id_mut;
 use crate::ibc::TRANSFER_CALLBACK;
 use crate::msg::{HubExecuteMsg, HubIbcCallbackMsg, HubIbcMsg};
 use crate::state::NFT;
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::ibc_client::InstalledModuleIdentification;
-use abstract_core::objects::module::ModuleInfo;
-use abstract_core::{ibc_client, IBC_CLIENT};
+use abstract_adapter::std::ibc::CallbackInfo;
+use abstract_adapter::std::ibc_client::InstalledModuleIdentification;
+use abstract_adapter::std::objects::module::ModuleInfo;
+use abstract_adapter::std::{ibc_client, IBC_CLIENT};
 use abstract_sdk::features::{AccountIdentification, ModuleIdentification};
 use abstract_sdk::{AbstractResponse, AccountAction, Execution, ModuleInterface};
 use common::NAMESPACE;
@@ -86,10 +86,6 @@ fn ibc_transfer(
     let current_module_info = ModuleInfo::from_id(hub.module_id(), hub.version().into())?;
     let ibc_msg = ibc_client::ExecuteMsg::ModuleIbcAction {
         host_chain: recipient_chain,
-        source_module: InstalledModuleIdentification {
-            module_info: current_module_info.clone(),
-            account_id: None,
-        },
         target_module: current_module_info,
         msg: to_json_binary(&HubIbcMsg::IbcMint {
             token_id: token_id.clone(),

@@ -3,7 +3,7 @@ use crate::{
     msg::HubIbcMsg,
     state::NFT,
 };
-use abstract_core::{
+use abstract_adapter::std::{
     ibc::ModuleIbcMsg,
     objects::{chain_name::ChainName, AccountId},
 };
@@ -66,8 +66,8 @@ fn internal_ibc_mint_token(
     // We mint a token on the app's local account
     let target_account = if account_id.is_remote() {
         match account_id.trace() {
-            abstract_core::objects::account::AccountTrace::Local => unreachable!(),
-            abstract_core::objects::account::AccountTrace::Remote(trace) => {
+            abstract_adapter::std::objects::account::AccountTrace::Local => unreachable!(),
+            abstract_adapter::std::objects::account::AccountTrace::Remote(trace) => {
                 if trace.last() == Some(&ChainName::from_chain_id(&env.block.chain_id)) {
                     let mut new_trace = trace.clone();
                     new_trace.pop();

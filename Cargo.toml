@@ -8,7 +8,7 @@ cosmos-adventures-hub = { path = "./hub" }
 minter = { path = "./modules/minter" }
 
 # Dependencies for interface
-cw-orch = { version = "0.20.1" }
+cw-orch = { version = "0.22.2" }
 
 # External
 speculoos = "0.11.0"
@@ -33,27 +33,12 @@ cw721-metadata-onchain = "0.15.0"
 cw721 = "0.15.0"
 
 # Abstract
-abstract-app = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-ibc-host = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc", default-features = false }
-abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-interchain-tests = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-app = { version = "0.22.1" }
+abstract-adapter = { version = "0.22.1" }
+abstract-sdk = { version = "0.22.1" }
+abstract-ibc-host = { version = "0.22.1", default-features = false }
+abstract-interface = { version = "0.22.1" }
+abstract-client = { version = "0.22.1" }
 
 polytone = { package = "abstract-polytone", version = "1.0.0" }
-abstract-cw-orch-polytone = { version = "1.0.4" }
-
-
-[patch.crates-io]
-abstract-core = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-manager = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-version-control = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-ibc-client = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-ibc-host = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-module-factory = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-account-factory = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
-abstract-interface = { git = "https://github.com/AbstractSDK/abstract", branch = "feature/module-ibc" }
+abstract-cw-orch-polytone = { version = "2.0.2" }

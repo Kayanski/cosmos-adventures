@@ -1,4 +1,4 @@
-use abstract_core::ibc::{CallbackResult, IbcCallbackMsg};
+use abstract_adapter::std::ibc::{CallbackResult, IbcResponseMsg};
 use abstract_sdk::AbstractResponse;
 use cosmwasm_std::{from_json, wasm_execute, DepsMut, Env, MessageInfo};
 
@@ -15,7 +15,7 @@ pub fn transfer_callback(
     _env: Env,
     _info: MessageInfo,
     adapter: Hub,
-    callback: IbcCallbackMsg,
+    callback: IbcResponseMsg,
 ) -> HubResult {
     // We burn the token that was successfully transfered (if so)
 

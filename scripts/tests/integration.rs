@@ -2,11 +2,11 @@
 // use abstract_client::Application;
 
 // use abstract_client::Namespace;
-// use abstract_core::adapter::AdapterRequestMsg;
-// use abstract_core::ibc_client;
-// use abstract_core::objects::chain_name::ChainName;
-// use abstract_core::proxy;
-// use abstract_core::PROXY;
+// use abstract_adapter::std::adapter::AdapterRequestMsg;
+// use abstract_adapter::std::ibc_client;
+// use abstract_adapter::std::objects::chain_name::ChainName;
+// use abstract_adapter::std::proxy;
+// use abstract_adapter::std::PROXY;
 // use abstract_interchain_tests::setup::ibc_abstract_setup;
 // use abstract_interface::Abstract;
 // use abstract_interface::AbstractAccount;

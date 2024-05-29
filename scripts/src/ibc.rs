@@ -3,7 +3,7 @@ use abstract_interchain_tests::setup::ibc_connect_polytone_and_abstract;
 use abstract_interface::Abstract;
 use anyhow::Result as AnyResult;
 use cw_orch::contract::Deploy;
-use cw_orch_interchain::interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
 
 pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     interchain: &IBC,

@@ -58,7 +58,7 @@ pub mod interface {
     impl<Chain: CwEnv> AdapterDeployer<Chain, MinterInstantiateMsg> for CosmosAdventuresMinter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for CosmosAdventuresMinter<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(
                     crate::contract::execute,
@@ -68,7 +68,7 @@ pub mod interface {
                 .with_reply(crate::contract::reply),
             )
         }
-        fn wasm(&self) -> WasmPath {
+        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path("cosmos-adventures-hub")
                 .unwrap()
@@ -101,7 +101,7 @@ pub mod interface {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_core::manager::ModuleInstallConfig>,
+            Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
             abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])

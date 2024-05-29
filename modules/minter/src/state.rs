@@ -1,4 +1,4 @@
-use abstract_core::objects::AccountId;
+use abstract_adapter::std::objects::AccountId;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Coin;
 use cw721_metadata_onchain::Metadata;

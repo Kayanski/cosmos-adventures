@@ -148,7 +148,7 @@ pub enum QueryMsg {
 pub struct Cw721;
 
 impl<Chain: CwEnv> Uploadable for Cw721<Chain> {
-    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(ContractWrapper::new_with_empty(
             cw721_metadata_onchain::entry::execute,
             cw721_metadata_onchain::entry::instantiate,

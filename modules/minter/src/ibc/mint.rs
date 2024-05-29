@@ -3,7 +3,7 @@ use crate::{
     msg::MinterIbcMsg,
     state::CONFIG,
 };
-use abstract_core::{
+use abstract_adapter::std::{
     ibc::ModuleIbcMsg,
     objects::{chain_name::ChainName, AccountId},
 };
@@ -74,7 +74,7 @@ fn internal_ibc_mint_token(
     let mint_msg = wasm_execute(
         &module_addr,
         &cosmos_adventures_hub::msg::ExecuteMsg::Module(
-            abstract_core::adapter::AdapterRequestMsg {
+            abstract_adapter::std::adapter::AdapterRequestMsg {
                 proxy_address: Some(resolved_account.proxy.to_string()),
                 request: HubExecuteMsg::Mint {
                     module_id: MINTER_ID.to_string(),
@@ -97,7 +97,7 @@ fn internal_ibc_mint_token(
             wasm_execute(
                 &module_addr,
                 &cosmos_adventures_hub::msg::ExecuteMsg::Module(
-                    abstract_core::adapter::AdapterRequestMsg {
+                    abstract_adapter::std::adapter::AdapterRequestMsg {
                         proxy_address: Some(resolved_account.proxy.to_string()),
                         request: HubExecuteMsg::IbcTransfer {
                             token_id: next_token_id.next_token_id,

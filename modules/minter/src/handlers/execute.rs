@@ -1,6 +1,8 @@
-use abstract_core::ibc_client::{InstalledModuleIdentification, ListIbcInfrastructureResponse};
-use abstract_core::objects::module::ModuleInfo;
-use abstract_core::{ibc_client, IBC_CLIENT};
+use abstract_adapter::std::ibc_client::{
+    InstalledModuleIdentification, ListIbcInfrastructureResponse,
+};
+use abstract_adapter::std::objects::module::ModuleInfo;
+use abstract_adapter::std::{ibc_client, IBC_CLIENT};
 use abstract_sdk::{
     AbstractResponse, AccountVerification, Execution, ExecutorMsg, ModuleInterface,
     TransferInterface,
@@ -54,10 +56,6 @@ fn mint(
     let current_module_info = ModuleInfo::from_id(adapter.module_id(), adapter.version().into())?;
     let ibc_msg = ibc_client::ExecuteMsg::ModuleIbcAction {
         host_chain: recipient_chain.0.to_string(),
-        source_module: InstalledModuleIdentification {
-            module_info: current_module_info.clone(),
-            account_id: None,
-        },
         target_module: current_module_info,
         msg: to_json_binary(&MinterIbcMsg::IbcMint {
             local_account_id: account,

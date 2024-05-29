@@ -1,9 +1,9 @@
-use abstract_core::objects::chain_name::ChainName;
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::objects::{salt::generate_instantiate_salt, AccountId};
-use abstract_core::PROXY;
 use abstract_ibc_host::endpoints::packet::client_to_host_account_id;
 use abstract_interface::Abstract;
+use abstract_sdk::std::objects::chain_name::ChainName;
+use abstract_sdk::std::objects::module::ModuleVersion;
+use abstract_sdk::std::objects::{salt::generate_instantiate_salt, AccountId};
+use abstract_sdk::std::PROXY;
 use cw_orch::contract::Deploy;
 use cw_orch::environment::CwEnv;
 use cw_orch::prelude::ContractInstance;

@@ -1,4 +1,4 @@
-use abstract_core::objects::AccountId;
+use abstract_adapter::std::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
 
 use crate::contract::Hub;

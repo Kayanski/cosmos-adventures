@@ -1,5 +1,5 @@
 use crate::contract::Minter;
-use abstract_core::objects::AccountId;
+use abstract_adapter::std::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Coin;
 use cw721_metadata_onchain::Metadata;
