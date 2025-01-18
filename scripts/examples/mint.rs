@@ -104,7 +104,7 @@ fn main() -> anyhow::Result<()> {
         },
     )?;
 
-    interchain.wait_ibc("juno-1", remote_actions_response)?;
+    interchain.check_ibc("juno-1", remote_actions_response)?;
 
     // We mint the token locally
     let _hub = src_account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;
@@ -121,7 +121,7 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     // And wait for IBC execution
-    interchain.wait_ibc("juno-1", mint_response)?;
+    interchain.check_ibc("juno-1", mint_response)?;
 
     // We make sure the distant nft has no item because it was sent back
     let distant_hub = dst_account.install_adapter::<CosmosAdventuresHub<_>>(&[])?;

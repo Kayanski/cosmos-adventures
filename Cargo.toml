@@ -39,6 +39,8 @@ abstract-sdk = { version = "0.22.1" }
 abstract-ibc-host = { version = "0.22.1", default-features = false }
 abstract-interface = { version = "0.22.1" }
 abstract-client = { version = "0.22.1" }
+abstract-money-market-adapter = {git="https://github.com/abstractsdk/abstract"}
+abstract-dex-adapter = {git="https://github.com/abstractsdk/abstract", branch="release-0.22"}
 
 polytone = { package = "abstract-polytone", version = "1.0.0" }
 abstract-cw-orch-polytone = { version = "2.0.2" }
